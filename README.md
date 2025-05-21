@@ -74,3 +74,48 @@ Groups devices by their assigned role (e.g., edge-router, access-switch, core-sw
 
 Output saved to inventory_by_role.yml.
 
+
+
+┌────────────────────────────┐
+│ 1. Ansible Control Node    │
+└────────────┬───────────────┘
+             │
+             ▼
+┌────────────────────────────┐
+│ 2. Connect to NetBox API   │
+│    - GET /api/dcim/devices │
+│    - Auth via API Token    │
+└────────────┬───────────────┘
+             │
+             ▼
+┌────────────────────────────┐
+│ 3. Fetch All Device Data   │
+│    (JSON format)           │
+└────────────┬───────────────┘
+             │
+             ▼
+┌──────────────────────────────────────────────┐
+│ 4. Parse Devices and Group by:               │
+│    - Site (site.slug)                        │
+│    - Vendor (device_type.manufacturer.name)  │
+│    - Role (device_role.name)                 │
+└────────────┬─────────────────────────┬───────┘
+             │                         │
+             ▼                         ▼
+┌────────────────────┐      ┌────────────────────┐
+│ 5a. Save site.yml   │      │ 5b. Save vendor.yml│
+│  → output/inventory_by_site.yml  │
+└────────────────────┘      └────────────────────┘
+             │                         │
+             ▼                         ▼
+        ┌────────────────────────────┐
+        │ 5c. Save role.yml          │
+        │  → output/inventory_by_role.yml │
+        └────────────────────────────┘
+             │
+             ▼
+┌────────────────────────────┐
+│ 6. Dynamic Inventory Ready │
+└────────────────────────────┘
+
+
