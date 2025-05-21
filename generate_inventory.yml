@@ -1,0 +1,48 @@
+---
+│   - name: Generate structured inventory from NetBox
+│     hosts: localhost
+│     gather_facts: no
+│     tasks:
+│       - name: Query NetBox and group devices by site
+│         uri:
+│           url: "{{ netbox_url }}/api/dcim/devices/?limit=0"
+│           method: GET
+│           headers:
+│             Authorization: "Token {{ netbox_token }}"
+│           return_content: yes
+│         register: netbox_response
+│
+│       - name: Parse and group by site
+│         set_fact:
+│           grouped_by_site: >-
+│             {{ netbox_response.json.results | groupby('site.slug') | dict }}
+│
+│       - name: Save site-based inventory
+│         copy:
+│           content: "{{ grouped_by_site | to_nice_yaml }}"
+│           dest: output/inventory_by_site.yml
+│
+│       - name: Group by vendor
+│         set_fact:
+│           grouped_by_vendor: >-
+│             {{ netbox_response.json.results | groupby('device_type.manufacturer.name') | dict }}
+│
+│       - name: Save vendor-based inventory
+│         copy:
+│           content: "{{ grouped_by_vendor | to_nice_yaml }}"
+│           dest: output/inventory_by_vendor.yml
+│
+│       - name: Group by role
+│         set_fact:
+│           grouped_by_role: >-
+│             {{ netbox_response.json.results | groupby('device_role.name') | dict }}
+│
+│       - name: Save role-based inventory
+│         copy:
+│           content: "{{ grouped_by_role | to_nice_yaml }}"
+│           dest: output/inventory_by_role.yml
+│
+│   vars:
+│     netbox_url: "http://netbox.local"
+│     netbox_token: "YOUR_NETBOX_TOKEN"
+...
